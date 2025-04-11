@@ -197,22 +197,11 @@ const MetricGrid = styled.div`
 `;
 
 const ProfileInfo = styled.div`
-
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0rem;
   width: 100%;
-`;
-
-const LoadingAvatar = styled.div`
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: ${props => props.theme.colors.cardBackground};
-  display: flex;
-  align-items: center;
-  justify-content: center;
 `;
 
 const LoadingMetricCard = styled.div`
@@ -357,9 +346,6 @@ const Dashboard = () => {
   const LoadingDashboard = () => (
     <ProfileContent>
       <ProfileLeft>
-        <LoadingAvatar>
-          <span>Loading...</span>
-        </LoadingAvatar>
         <ProfileInfo>
           <Name>{user?.displayName || ''}</Name>
           <Role>{userRole || ''}</Role>
