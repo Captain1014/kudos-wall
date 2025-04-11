@@ -209,12 +209,25 @@ const TextArea = styled.textarea`
   }
 `;
 
-const generateAvatarUrl = (options: AvatarOptions) => {
+const generateAvatarUrl = async (options: AvatarOptions) => {
   console.log('[generateAvatarUrl] Input options:', JSON.stringify(options));
   try {
-    const base64Options = btoa(JSON.stringify(options));
-    const url = `/api/avatar/${base64Options}`;
-    console.log('[generateAvatarUrl] Generated Proxy URL:', url);
+    const response = await fetch('https://api.notion-avatar.com/svg', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'image/svg+xml',
+      },
+      body: JSON.stringify(options),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate avatar: ${response.status}`);
+    }
+
+    const svgBlob = await response.blob();
+    const url = URL.createObjectURL(svgBlob);
+    console.log('[generateAvatarUrl] Generated URL:', url);
     return url;
   } catch (error) {
     console.error('[generateAvatarUrl] Error generating URL:', error, 'with options:', options);
@@ -344,11 +357,25 @@ const Profile = () => {
       const docRef = doc(db, 'users', user.uid);
       const now = new Date().toISOString();
       
-      const url = generateAvatarUrl(avatarOptions);
-      console.log('Generated Avatar URL:', url);
+      // 아바타 생성 및 SVG 데이터 가져오기
+      const response = await fetch('https://api.notion-avatar.com/svg', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'image/svg+xml',
+        },
+        body: JSON.stringify(avatarOptions),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate avatar: ${response.status}`);
+      }
+
+      const svgText = await response.text();
       
       const userAvatar: UserAvatar = {
         avatarOptions,
+        svgData: svgText, // SVG 데이터 저장
         updatedAt: now,
         createdAt: now
       };
@@ -362,7 +389,6 @@ const Profile = () => {
         role: userData.role,
         department: userData.department,
         avatar: userAvatar,
-        avatarUrl: url,
         avatarOptions,
         updatedAt: now,
         createdAt: now
