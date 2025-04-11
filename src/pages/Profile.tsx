@@ -209,36 +209,11 @@ const TextArea = styled.textarea`
   }
 `;
 
-const generateAvatarUrl = async (options: AvatarOptions) => {
-  console.log('[generateAvatarUrl] Input options:', JSON.stringify(options));
-  try {
-    const response = await fetch('https://api.notion-avatar.com/svg', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'image/svg+xml',
-      },
-      body: JSON.stringify(options),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to generate avatar: ${response.status}`);
-    }
-
-    const svgBlob = await response.blob();
-    const url = URL.createObjectURL(svgBlob);
-    console.log('[generateAvatarUrl] Generated URL:', url);
-    return url;
-  } catch (error) {
-    console.error('[generateAvatarUrl] Error generating URL:', error, 'with options:', options);
-    return '';
-  }
-};
-
 const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [avatarOptions, setAvatarOptions] = useState<AvatarOptions>(() => ({
     face: 7,
     nose: 4,
@@ -344,7 +319,45 @@ const Profile = () => {
     loadUserData();
   }, [user?.uid, user?.displayName, user?.email]);
 
-  
+  // 아바타 URL 업데이트
+  useEffect(() => {
+    let isMounted = true;
+
+    const updateAvatarUrl = async () => {
+      try {
+        const response = await fetch('https://api.notion-avatar.com/svg', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'image/svg+xml',
+          },
+          body: JSON.stringify(avatarOptions),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to generate avatar: ${response.status}`);
+        }
+
+        const svgBlob = await response.blob();
+        if (isMounted) {
+          const url = URL.createObjectURL(svgBlob);
+          setAvatarUrl(url);
+        }
+      } catch (error) {
+        console.error('Error generating avatar:', error);
+      }
+    };
+
+    updateAvatarUrl();
+
+    return () => {
+      isMounted = false;
+      // Cleanup old URL
+      if (avatarUrl) {
+        URL.revokeObjectURL(avatarUrl);
+      }
+    };
+  }, [avatarOptions]);
 
   const saveUserData = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -357,25 +370,8 @@ const Profile = () => {
       const docRef = doc(db, 'users', user.uid);
       const now = new Date().toISOString();
       
-      // 아바타 생성 및 SVG 데이터 가져오기
-      const response = await fetch('https://api.notion-avatar.com/svg', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'image/svg+xml',
-        },
-        body: JSON.stringify(avatarOptions),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to generate avatar: ${response.status}`);
-      }
-
-      const svgText = await response.text();
-      
       const userAvatar: UserAvatar = {
         avatarOptions,
-        svgData: svgText, // SVG 데이터 저장
         updatedAt: now,
         createdAt: now
       };
@@ -440,8 +436,6 @@ const Profile = () => {
     });
   };
 
-  const avatarUrl = generateAvatarUrl(avatarOptions);
-
   if (isLoading) {
     return (
       <ProfileContainer>
@@ -476,11 +470,24 @@ const Profile = () => {
         <ProfileHeader>
           <AvatarSection>
             <AvatarContainer>
-              <Avatar 
-                src={avatarUrl} 
-                alt="Profile Avatar"
-                onError={(e) => console.error('Avatar image failed to load:', e, 'URL:', avatarUrl)}
-              />
+              {avatarUrl ? (
+                <Avatar 
+                  src={avatarUrl} 
+                  alt="Profile Avatar"
+                  onError={(e) => console.error('Avatar image failed to load:', e, 'URL:', avatarUrl)}
+                />
+              ) : (
+                <div style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  backgroundColor: 'none'
+                }}>
+                  Loading...
+                </div>
+              )}
             </AvatarContainer>
             <ButtonGroup>
               <Button onClick={generateRandomAvatar}>
