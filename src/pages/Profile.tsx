@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { AvatarOptions, UserAvatar, UserDocument } from '../types/avatar';
+import { AvatarOptions, UserDocument } from '../types/avatar';
 import { useNavigate } from 'react-router-dom';
 import { keyframes } from '@emotion/react';
 
@@ -356,13 +356,7 @@ const Profile = () => {
       const docRef = doc(db, 'users', user.uid);
       const now = new Date().toISOString();
       
-      const userAvatar: UserAvatar = {
-        avatarOptions,
-        updatedAt: now,
-        createdAt: now
-      };
-      console.log('Saving user avatar:', userAvatar);
-
+      // 아바타 옵션만 저장
       const userDataToSave = {
         uid: user.uid,
         email: userData.email,
@@ -370,8 +364,7 @@ const Profile = () => {
         bio: userData.bio,
         role: userData.role,
         department: userData.department,
-        avatar: userAvatar,
-        avatarOptions,
+        avatarOptions, // 아바타 옵션만 저장
         updatedAt: now,
         createdAt: now
       };
@@ -381,6 +374,11 @@ const Profile = () => {
 
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
+      
+      // 저장 성공 후 대시보드로 이동
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (error) {
       console.error('Error saving user data:', error);
       setSaveStatus('error');
