@@ -3,40 +3,52 @@ import fetch from 'node-fetch';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // 쿼리 파라미터에서 base64Options 추출
-    const base64Options = req.query.options as string;
-    if (!base64Options) {
-      return res.status(400).json({ error: 'Missing avatar options' });
+    console.log('Avatar API called with query:', req.query);
+    
+    const { options } = req.query;
+    if (!options) {
+      console.error('No options provided');
+      return res.status(400).json({ error: 'Missing options parameter' });
     }
 
-    console.log('Base64 options:', base64Options);
+    let decodedOptions;
+    try {
+      decodedOptions = JSON.parse(Buffer.from(options as string, 'base64').toString());
+      console.log('Decoded options:', decodedOptions);
+    } catch (error) {
+      console.error('Failed to decode options:', error);
+      return res.status(400).json({ error: 'Invalid options format' });
+    }
 
-    // base64 디코딩
-    const options = JSON.parse(Buffer.from(base64Options, 'base64').toString());
-    console.log('Decoded options:', options);
-    
-    // Notion Avatar API로 요청
-    const response = await fetch('https://notion-avatar.app/api/svg', {
+    const response = await fetch('https://notion-avatar-api.vercel.app/api', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'image/svg+xml',
       },
-      body: JSON.stringify(options),
+      body: JSON.stringify(decodedOptions),
     });
 
+    console.log('Notion API response status:', response.status);
+
     if (!response.ok) {
-      console.error('Notion API error:', await response.text());
-      throw new Error(`Notion Avatar API responded with ${response.status}`);
+      const errorText = await response.text();
+      console.error('Notion API error:', errorText);
+      return res.status(response.status).json({ 
+        error: 'Failed to generate avatar',
+        details: errorText
+      });
     }
 
-    const svg = await response.text();
-    
+    const buffer = await response.buffer();
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=31536000');
-    return res.send(svg);
+    return res.status(200).send(buffer);
+
   } catch (error) {
-    console.error('Error generating avatar:', error);
-    return res.status(500).json({ error: 'Failed to generate avatar' });
+    console.error('Unexpected error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 } 
