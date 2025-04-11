@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log('Avatar API called with query:', req.query);
+    console.log('Avatar API called with path:', req.url);
     
     const { options } = req.query;
     if (!options) {
@@ -20,10 +21,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid options format' });
     }
 
-    const response = await fetch('https://notion-avatar-api.vercel.app/api', {
+    const response = await fetch('https://api.notion-avatar.com/svg', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'image/svg+xml',
       },
       body: JSON.stringify(decodedOptions),
     });
