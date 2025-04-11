@@ -325,26 +325,16 @@ const Profile = () => {
 
     const updateAvatarUrl = async () => {
       try {
-        const response = await fetch('https://api.notion-avatar.com/svg', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'image/svg+xml',
-          },
-          body: JSON.stringify(avatarOptions),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to generate avatar: ${response.status}`);
-        }
-
-        const svgBlob = await response.blob();
+        // base64로 옵션을 인코딩
+        const base64Options = btoa(JSON.stringify(avatarOptions));
+        // URL에 직접 옵션을 포함
+        const url = `https://notion-avatar.app/api/svg/${base64Options}`;
+        
         if (isMounted) {
-          const url = URL.createObjectURL(svgBlob);
           setAvatarUrl(url);
         }
       } catch (error) {
-        console.error('Error generating avatar:', error);
+        console.error('Error generating avatar URL:', error);
       }
     };
 
@@ -352,10 +342,6 @@ const Profile = () => {
 
     return () => {
       isMounted = false;
-      // Cleanup old URL
-      if (avatarUrl) {
-        URL.revokeObjectURL(avatarUrl);
-      }
     };
   }, [avatarOptions]);
 
