@@ -146,9 +146,7 @@ const ProfileLeft = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding-right: 2.5rem;
-  border-right: 1px solid ${props => props.theme.colors.primary}20;
+  gap: 1rem;
 `;
 
 const ProfileMetrics = styled.div`
@@ -269,25 +267,6 @@ const LoadingStatLabel = styled.div`
   opacity: 0.7;
 `;
 
-const Button = styled(Link)`
-  background: ${props => props.theme.colors.primary};
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: ${props => props.theme.borderRadius.small};
-  text-decoration: none;
-  transition: background-color 0.2s;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-
-  &:hover {
-    background: ${props => props.theme.colors.primary}dd;
-  }
-`;
-
-const ButtonText = styled.span`
-  font-weight: 500;
-`;
-
 interface DashboardStats {
   kpis: KPI[];
   kudosReceived: KudosCard[];
@@ -297,106 +276,73 @@ interface DashboardStats {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string>('');
-  const [allKudos, setAllKudos] = useState<KudosCard[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     kpis: [],
     kudosReceived: [],
     kudosGiven: [],
-    teamMembers: [],
+    teamMembers: []
   });
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [userRole, setUserRole] = useState('');
 
-  // stats 변경을 감지하는 useEffect 추가
-  useEffect(() => {
-    console.log('Stats updated:', stats);
-  }, [stats]);
-
+  // 대시보드 데이터 로드
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!user?.uid) {
         setIsLoading(false);
-        setAvatarUrl(null);
         return;
       }
-      
-      setIsLoading(true);
+
       try {
         console.log('Starting to load dashboard data...');
         
-        // 아바타 로드
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
+        // 사용자 데이터 로드
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
         
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          console.log('Firebase user data:', data);
-          if (data.avatarUrl) {
-            console.log('Avatar URL:', data.avatarUrl);
-            setAvatarUrl(data.avatarUrl);
-          } else {
-            // display a button to redirect to profile page
-            console.log('No avatar URL found');
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          console.log('Firebase user data:', userData);
+          
+          // 아바타 URL 생성
+          if (userData.avatarOptions) {
+            const base64Options = btoa(JSON.stringify(userData.avatarOptions));
+            const url = `https://notion-avatar.app/api/svg/${base64Options}`;
+            console.log('Avatar URL:', url);
+            setAvatarUrl(url);
           }
-          // 사용자 역할 설정
-          if (data.role) {
-            setUserRole(data.role);
-          }
+          
+          setUserRole(userData.role || '');
         }
 
         // KPI 데이터 로드
-        console.log('Loading KPIs...');
-        let kpis: KPI[] = [];
-        try {
-          kpis = await getUserKPIs(user.uid);
-          console.log('Loaded KPIs:', kpis);
-        } catch (error) {
-          console.error('Error loading KPIs:', error);
-        }
-        
-        // Kudos 데이터 로드
-        console.log('Loading Kudos...');
-        let myKudosReceived: KudosCard[] = [];
-        let myKudosGiven: KudosCard[] = [];
-        
-        try {
-          // 모든 Kudos 데이터를 가져오도록 수정
-          const fetchedKudos = await getAllKudosCards();
-          setAllKudos(fetchedKudos);
-          console.log('Loaded All Kudos:', fetchedKudos);
-          
-          // 현재 사용자의 Kudos 필터링
-          myKudosReceived = fetchedKudos.filter(k => k.receiverId === user.uid);
-          myKudosGiven = fetchedKudos.filter(k => k.senderId === user.displayName);
-          console.log('Current User Kudos - Received:', myKudosReceived, 'Given:', myKudosGiven);
-        } catch (error) {
-          console.error('Error loading Kudos:', error);
-        }
-        
-        // 팀원 데이터 로드
-        console.log('Loading team members...');
-        let teamMembers: User[] = [];
-        try {
-          teamMembers = await getTeamMembers();
-          console.log('Loaded Team Members:', teamMembers);
-        } catch (error) {
-          console.error('Error loading team members:', error);
-        }
+        const kpis = await getUserKPIs(user.uid);
+        console.log('Loaded KPIs:', kpis);
 
-        // 상태 업데이트
+        // Kudos 카드 로드
+        const allKudos = await getAllKudosCards();
+        console.log('Loaded All Kudos:', allKudos);
+
+        // 받은 Kudos와 준 Kudos 분류
+        const kudosReceived = allKudos.filter(kudos => kudos.receiverId === user.uid);
+        const kudosGiven = allKudos.filter(kudos => kudos.senderId === user.uid);
+        console.log('Current User Kudos - Received:', kudosReceived, 'Given:', kudosGiven);
+
+        // 팀 멤버 로드
+        const teamMembers = await getTeamMembers();
+        console.log('Loaded Team Members:', teamMembers);
+
+        setStats({
+          kpis,
+          kudosReceived,
+          kudosGiven,
+          teamMembers
+        });
+
         console.log('Preparing to update stats...');
-        const newStats = {
-          kpis: kpis || [],
-          kudosReceived: myKudosReceived,  // 받은 Kudos만 저장
-          kudosGiven: myKudosGiven,      // 보낸 Kudos만 저장
-          teamMembers: teamMembers || [],
-        };
-        
-        console.log('Setting new stats:', newStats);
-        setStats(newStats);
+        console.log('Setting new stats:', { kpis, kudosReceived, kudosGiven, teamMembers });
         console.log('Stats update triggered');
-
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       } finally {
@@ -460,24 +406,12 @@ const Dashboard = () => {
   const DashboardContent = () => (
     <ProfileContent>
       <ProfileLeft>
-        {avatarUrl ? (
-          <Avatar 
-            src={avatarUrl} 
-            alt={user?.displayName || 'My Profile'} 
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/default-avatar.png';
-            }}
-          />
-        ) : (
-          <Button to="/profile">
-            <ButtonText>Set Avatar</ButtonText>
-          </Button>
-        )}
-        <ProfileInfo>
-          <Name>{user?.displayName || ''}</Name>
-          <Role>{userRole || ''}</Role>
-        </ProfileInfo>
+        <Avatar 
+          src={avatarUrl || `https://notion-avatar.app/api/svg/eyJmYWNlIjo3LCJub3NlIjo0LCJtb3V0aCI6MywiZXllcyI6MSwiZXllYnJvd3MiOjEzLCJnbGFzc2VzIjozLCJoYWlyIjoyMCwiYWNjZXNzb3JpZXMiOjAsImRldGFpbHMiOjAsImJlYXJkIjowLCJmbGlwIjowLCJjb2xvciI6IiNGRkZGRkYiLCJzaGFwZSI6Im5vbmUifQ==`} 
+          alt="Profile Avatar" 
+        />
+        <Name>{user?.displayName || 'User'}</Name>
+        <Role>{userRole || 'Team Member'}</Role>
       </ProfileLeft>
       <ProfileMetrics>
         <MetricCard to="/kpi">
@@ -577,13 +511,13 @@ const Dashboard = () => {
                     <Stats>
                       <StatItem>
                         <StatValue>
-                          {allKudos.filter(k => k.receiverId === member.id).length}
+                          {stats.kudosReceived.filter(k => k.receiverId === member.id).length}
                         </StatValue>
                         <StatLabel>Kudos Received</StatLabel>
                       </StatItem>
                       <StatItem>
                         <StatValue>
-                          {allKudos.filter(k => k.senderId === member.displayName).length}
+                          {stats.kudosGiven.filter(k => k.senderId === member.displayName).length}
                         </StatValue>
                         <StatLabel>Kudos Given</StatLabel>
                       </StatItem>
