@@ -3,6 +3,8 @@ import fetch from 'node-fetch';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log('Avatar API called with method:', req.method);
+    console.log('Avatar API called with headers:', req.headers);
     console.log('Avatar API called with query:', req.query);
     console.log('Avatar API called with path:', req.url);
     
@@ -13,6 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const match = req.url.match(/\/api\/avatar\/([^/?]+)/);
       if (match) {
         options = match[1];
+        console.log('Extracted options from URL path:', options);
       }
     }
 
@@ -22,7 +25,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // URL 안전하지 않은 문자 처리
+    const originalOptions = options;
     options = options.replace(/-/g, '+').replace(/_/g, '/');
+    if (originalOptions !== options) {
+      console.log('Transformed options:', { original: originalOptions, transformed: options });
+    }
     
     let decodedOptions;
     try {
@@ -42,6 +49,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid base64 format' });
     }
 
+    console.log('Sending request to Notion Avatar API with options:', decodedOptions);
+    
     const response = await fetch('https://api.notion-avatar.com/svg', {
       method: 'POST',
       headers: {
@@ -63,6 +72,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const buffer = await response.buffer();
+    console.log('Successfully generated avatar, sending response');
+    
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=31536000');
     return res.status(200).send(buffer);
