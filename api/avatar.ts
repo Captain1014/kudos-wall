@@ -3,8 +3,8 @@ import fetch from 'node-fetch';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // URL에서 base64Options 추출
-    const base64Options = req.url?.split('/api/avatar/')[1]?.split('?')[0];
+    // 쿼리 파라미터에서 base64Options 추출
+    const base64Options = req.query.options as string;
     if (!base64Options) {
       return res.status(400).json({ error: 'Missing avatar options' });
     }
@@ -20,6 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'image/svg+xml',
       },
       body: JSON.stringify(options),
     });

@@ -15,8 +15,8 @@
   ],
   "routes": [
     {
-      "src": "/api/avatar/(.*)",
-      "dest": "/api/avatar"
+      "src": "/api/avatar/([^/]+)",
+      "dest": "/api/avatar?options=$1"
     },
     {
       "src": "/(.*)",
