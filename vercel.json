@@ -19,8 +19,11 @@
       "dest": "/api/avatar.ts?options=$options"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/index.html"
     }
   ]
 } 
