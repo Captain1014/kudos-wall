@@ -21,13 +21,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing options parameter' });
     }
 
+    // URL 안전하지 않은 문자 처리
+    options = options.replace(/-/g, '+').replace(/_/g, '/');
+    
     let decodedOptions;
     try {
-      decodedOptions = JSON.parse(Buffer.from(options, 'base64').toString());
-      console.log('Decoded options:', decodedOptions);
+      // base64 디코딩 시도
+      const decodedString = Buffer.from(options, 'base64').toString();
+      console.log('Decoded string:', decodedString);
+      
+      try {
+        decodedOptions = JSON.parse(decodedString);
+        console.log('Decoded options:', decodedOptions);
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        return res.status(400).json({ error: 'Invalid JSON format' });
+      }
     } catch (error) {
-      console.error('Failed to decode options:', error);
-      return res.status(400).json({ error: 'Invalid options format' });
+      console.error('Failed to decode base64:', error);
+      return res.status(400).json({ error: 'Invalid base64 format' });
     }
 
     const response = await fetch('https://api.notion-avatar.com/svg', {
