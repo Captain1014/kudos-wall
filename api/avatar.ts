@@ -6,7 +6,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('Avatar API called with query:', req.query);
     console.log('Avatar API called with path:', req.url);
     
-    const { options } = req.query;
+    let options = req.query.options as string;
+    
+    // URL에서 직접 옵션을 추출 (경로 파라미터로 전달된 경우)
+    if (!options && req.url) {
+      const match = req.url.match(/\/api\/avatar\/([^/?]+)/);
+      if (match) {
+        options = match[1];
+      }
+    }
+
     if (!options) {
       console.error('No options provided');
       return res.status(400).json({ error: 'Missing options parameter' });
@@ -14,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let decodedOptions;
     try {
-      decodedOptions = JSON.parse(Buffer.from(options as string, 'base64').toString());
+      decodedOptions = JSON.parse(Buffer.from(options, 'base64').toString());
       console.log('Decoded options:', decodedOptions);
     } catch (error) {
       console.error('Failed to decode options:', error);
