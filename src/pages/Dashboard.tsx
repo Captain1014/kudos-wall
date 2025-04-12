@@ -90,6 +90,17 @@ const Avatar = styled.img`
   margin-bottom: 0rem;
 `;
 
+const AvatarContainer = styled.div`
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${props => props.theme.colors.background};
+`;
+
 const Name = styled.h3`
   color: ${props => props.theme.colors.text};
   margin: 0 0 0.5rem 0;
@@ -337,7 +348,18 @@ const Dashboard = () => {
   const LoadingDashboard = () => (
     <ProfileContent>
       <ProfileLeft>
-        <Avatar src="" alt="Loading..." />
+        <AvatarContainer>
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            backgroundColor: 'none'
+          }}>
+            Loading...
+          </div>
+        </AvatarContainer>
         <ProfileInfo>
           <Name>{user?.displayName || ''}</Name>
           <Role>{userRole || ''}</Role>
@@ -384,12 +406,25 @@ const Dashboard = () => {
   const DashboardContent = () => (
     <ProfileContent>
       <ProfileLeft>
-        {avatarUrl && !isLoading && (
-          <Avatar 
-            src={avatarUrl} 
-            alt="Profile Avatar" 
-          />
-        )}
+        <AvatarContainer>
+          {avatarUrl ? (
+            <Avatar 
+              src={avatarUrl} 
+              alt="Profile Avatar" 
+            />
+          ) : (
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: 'none'
+            }}>
+              Loading...
+            </div>
+          )}
+        </AvatarContainer>
         <Name>{user?.displayName || 'User'}</Name>
         <Role>{userRole || 'Team Member'}</Role>
       </ProfileLeft>
