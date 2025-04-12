@@ -453,7 +453,11 @@ const Dashboard = () => {
 
       <ProfilesSection>
         <MyProfile>
-          {isLoading || !avatarUrl ? <LoadingDashboard /> : <DashboardContent />}
+          {isLoading ? (
+            <LoadingDashboard />
+          ) : (
+            <DashboardContent />
+          )}
         </MyProfile>
 
         <TeamSection>
