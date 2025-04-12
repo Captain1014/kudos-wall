@@ -307,20 +307,10 @@ const Dashboard = () => {
 
         // KPI 데이터 로드
         const kpis = await getUserKPIs(user.uid);
-        console.log('Loaded KPIs:', kpis);
-
-        // Kudos 카드 로드
         const allKudos = await getAllKudosCards();
-        console.log('Loaded All Kudos:', allKudos);
-
-        // 받은 Kudos와 준 Kudos 분류
         const kudosReceived = allKudos.filter(kudos => kudos.receiverId === user.uid);
         const kudosGiven = allKudos.filter(kudos => kudos.senderId === user.uid);
-        console.log('Current User Kudos - Received:', kudosReceived, 'Given:', kudosGiven);
-
-        // 팀 멤버 로드
         const teamMembers = await getTeamMembers();
-        console.log('Loaded Team Members:', teamMembers);
 
         setStats({
           kpis,
@@ -329,12 +319,13 @@ const Dashboard = () => {
           teamMembers
         });
 
-        console.log('Preparing to update stats...');
-        console.log('Setting new stats:', { kpis, kudosReceived, kudosGiven, teamMembers });
-        console.log('Stats update triggered');
+        // avatarUrl이 설정된 후에만 로딩 상태를 false로 변경
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+
       } catch (error) {
         console.error('Error loading dashboard data:', error);
-      } finally {
         setIsLoading(false);
       }
     };
