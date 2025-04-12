@@ -298,7 +298,28 @@ const Dashboard = () => {
           
           // 아바타 URL 생성
           if (userData.avatarOptions) {
-            const base64Options = btoa(JSON.stringify(userData.avatarOptions));
+            const defaultOptions = {
+              face: 7,
+              nose: 4,
+              mouth: 3,
+              eyes: 1,
+              eyebrows: 13,
+              glasses: 3,
+              hair: 20,
+              accessories: 0,
+              details: 0,
+              beard: 0,
+              flip: 0,
+              color: '#FFFFFF',
+              shape: 'none'
+            };
+
+            const options = {
+              ...defaultOptions,
+              ...userData.avatarOptions
+            };
+
+            const base64Options = btoa(JSON.stringify(options));
             const url = `https://notion-avatar.app/api/svg/${base64Options}`;
             console.log('Avatar URL:', url);
             setAvatarUrl(url);
