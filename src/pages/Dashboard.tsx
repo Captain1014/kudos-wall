@@ -394,7 +394,7 @@ const Dashboard = () => {
     <ProfileContent>
       <ProfileLeft>
         <Avatar 
-          src={avatarUrl || `https://notion-avatar.app/api/svg/eyJmYWNlIjo3LCJub3NlIjo0LCJtb3V0aCI6MywiZXllcyI6MSwiZXllYnJvd3MiOjEzLCJnbGFzc2VzIjozLCJoYWlyIjoyMCwiYWNjZXNzb3JpZXMiOjAsImRldGFpbHMiOjAsImJlYXJkIjowLCJmbGlwIjowLCJjb2xvciI6IiNGRkZGRkYiLCJzaGFwZSI6Im5vbmUifQ==`} 
+          src={avatarUrl} 
           alt="Profile Avatar" 
         />
         <Name>{user?.displayName || 'User'}</Name>
