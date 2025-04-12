@@ -90,16 +90,7 @@ const Avatar = styled.img`
   margin-bottom: 0rem;
 `;
 
-const AvatarContainer = styled.div`
-  position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${props => props.theme.colors.background};
-`;
+
 
 const Name = styled.h3`
   color: ${props => props.theme.colors.text};
