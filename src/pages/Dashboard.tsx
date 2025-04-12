@@ -346,6 +346,7 @@ const Dashboard = () => {
   const LoadingDashboard = () => (
     <ProfileContent>
       <ProfileLeft>
+        <Avatar src="" alt="Loading..." />
         <ProfileInfo>
           <Name>{user?.displayName || ''}</Name>
           <Role>{userRole || ''}</Role>
