@@ -348,18 +348,7 @@ const Dashboard = () => {
   const LoadingDashboard = () => (
     <ProfileContent>
       <ProfileLeft>
-        <AvatarContainer>
-          <div style={{ 
-            width: '100%', 
-            height: '100%', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            backgroundColor: 'none'
-          }}>
-            Loading...
-          </div>
-        </AvatarContainer>
+        <div>Loading...</div>
         <ProfileInfo>
           <Name>{user?.displayName || ''}</Name>
           <Role>{userRole || ''}</Role>
@@ -406,25 +395,12 @@ const Dashboard = () => {
   const DashboardContent = () => (
     <ProfileContent>
       <ProfileLeft>
-        <AvatarContainer>
-          {avatarUrl ? (
-            <Avatar 
-              src={avatarUrl} 
-              alt="Profile Avatar" 
-            />
-          ) : (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              backgroundColor: 'none'
-            }}>
-              Loading...
-            </div>
-          )}
-        </AvatarContainer>
+        {avatarUrl ? (
+          <Avatar 
+            src={avatarUrl} 
+            alt="Profile Avatar" 
+          />
+        ) : null}
         <Name>{user?.displayName || 'User'}</Name>
         <Role>{userRole || 'Team Member'}</Role>
       </ProfileLeft>
