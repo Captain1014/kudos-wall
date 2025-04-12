@@ -393,10 +393,12 @@ const Dashboard = () => {
   const DashboardContent = () => (
     <ProfileContent>
       <ProfileLeft>
-        <Avatar 
-          src={avatarUrl} 
-          alt="Profile Avatar" 
-        />
+        {avatarUrl && !isLoading && (
+          <Avatar 
+            src={avatarUrl} 
+            alt="Profile Avatar" 
+          />
+        )}
         <Name>{user?.displayName || 'User'}</Name>
         <Role>{userRole || 'Team Member'}</Role>
       </ProfileLeft>
