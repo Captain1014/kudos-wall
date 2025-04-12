@@ -277,21 +277,7 @@ const Dashboard = () => {
   });
   const [avatarUrl, setAvatarUrl] = useState('');
   const [userRole, setUserRole] = useState('');
-  const [avatarOptions, setAvatarOptions] = useState<AvatarOptions>(() => ({
-    face: 7,
-    nose: 4,
-    mouth: 3,
-    eyes: 1,
-    eyebrows: 13,
-    glasses: 3,
-    hair: 20,
-    accessories: 0,
-    details: 0,
-    beard: 0,
-    flip: 0,
-    color: '#FFFFFF',
-    shape: 'none'
-  }));
+  const [avatarOptions, setAvatarOptions] = useState<AvatarOptions | null>(null);
 
   // 대시보드 데이터 로드
   useEffect(() => {
@@ -314,11 +300,7 @@ const Dashboard = () => {
           
           // 아바타 옵션 로드
           if (userData.avatar?.avatarOptions) {
-            const loadedOptions = userData.avatar.avatarOptions;
-            setAvatarOptions(prevOptions => ({
-              ...prevOptions,
-              ...loadedOptions
-            }));
+            setAvatarOptions(userData.avatar.avatarOptions);
           }
           
           setUserRole(userData.role || '');
@@ -351,6 +333,11 @@ const Dashboard = () => {
   // 아바타 URL 업데이트
   useEffect(() => {
     const updateAvatarUrl = async () => {
+      if (!avatarOptions) {
+        setAvatarUrl('');
+        return;
+      }
+
       try {
         const base64Options = btoa(JSON.stringify(avatarOptions));
         const url = `https://notion-avatar.app/api/svg/${base64Options}`;
