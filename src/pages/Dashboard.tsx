@@ -6,6 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { getUserKPIs, getAllKudosCards, getTeamMembers } from '../utils/firestore';
 import { KPI, KudosCard, User } from '../types/models';
+import { AvatarOptions } from '../types/avatar';
 
 const DashboardContainer = styled.div`
   max-width: 1200px;
@@ -276,6 +277,21 @@ const Dashboard = () => {
   });
   const [avatarUrl, setAvatarUrl] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [avatarOptions, setAvatarOptions] = useState<AvatarOptions>(() => ({
+    face: 7,
+    nose: 4,
+    mouth: 3,
+    eyes: 1,
+    eyebrows: 13,
+    glasses: 3,
+    hair: 20,
+    accessories: 0,
+    details: 0,
+    beard: 0,
+    flip: 0,
+    color: '#FFFFFF',
+    shape: 'none'
+  }));
 
   // 대시보드 데이터 로드
   useEffect(() => {
@@ -296,33 +312,13 @@ const Dashboard = () => {
           const userData = userDocSnap.data();
           console.log('Firebase user data:', userData);
           
-          // 아바타 URL 생성
-          if (userData.avatarOptions) {
-            const defaultOptions = {
-              face: 7,
-              nose: 4,
-              mouth: 3,
-              eyes: 1,
-              eyebrows: 13,
-              glasses: 3,
-              hair: 20,
-              accessories: 0,
-              details: 0,
-              beard: 0,
-              flip: 0,
-              color: '#FFFFFF',
-              shape: 'none'
-            };
-
-            const options = {
-              ...defaultOptions,
-              ...userData.avatarOptions
-            };
-
-            const base64Options = btoa(JSON.stringify(options));
-            const url = `https://notion-avatar.app/api/svg/${base64Options}`;
-            console.log('Avatar URL:', url);
-            setAvatarUrl(url);
+          // 아바타 옵션 로드
+          if (userData.avatar?.avatarOptions) {
+            const loadedOptions = userData.avatar.avatarOptions;
+            setAvatarOptions(prevOptions => ({
+              ...prevOptions,
+              ...loadedOptions
+            }));
           }
           
           setUserRole(userData.role || '');
@@ -342,11 +338,7 @@ const Dashboard = () => {
           teamMembers
         });
 
-        // avatarUrl이 설정된 후에만 로딩 상태를 false로 변경
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 500);
-
+        setIsLoading(false);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         setIsLoading(false);
@@ -355,6 +347,21 @@ const Dashboard = () => {
 
     loadDashboardData();
   }, [user?.uid]);
+
+  // 아바타 URL 업데이트
+  useEffect(() => {
+    const updateAvatarUrl = async () => {
+      try {
+        const base64Options = btoa(JSON.stringify(avatarOptions));
+        const url = `https://notion-avatar.app/api/svg/${base64Options}`;
+        setAvatarUrl(url);
+      } catch (error) {
+        console.error('Error generating avatar URL:', error);
+      }
+    };
+
+    updateAvatarUrl();
+  }, [avatarOptions]);
 
   // 로딩 중일 때 표시할 컴포넌트
   const LoadingDashboard = () => (
