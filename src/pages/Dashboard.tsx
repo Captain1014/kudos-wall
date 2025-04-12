@@ -460,7 +460,7 @@ const Dashboard = () => {
 
       <ProfilesSection>
         <MyProfile>
-          {isLoading ? <LoadingDashboard /> : <DashboardContent />}
+          {isLoading || !avatarUrl ? <LoadingDashboard /> : <DashboardContent />}
         </MyProfile>
 
         <TeamSection>
