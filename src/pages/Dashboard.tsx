@@ -279,6 +279,28 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState('');
   const [avatarOptions, setAvatarOptions] = useState<AvatarOptions | null>(null);
 
+  // 아바타 URL 업데이트
+  useEffect(() => {
+    const updateAvatarUrl = async () => {
+      if (!avatarOptions) {
+        setAvatarUrl('');
+        return;
+      }
+
+      try {
+        const base64Options = btoa(JSON.stringify(avatarOptions));
+        const url = `https://notion-avatar.app/api/svg/${base64Options}`;
+        setAvatarUrl(url);
+        setIsLoading(false);  // 아바타 URL이 설정된 후에만 로딩 상태 해제
+      } catch (error) {
+        console.error('Error generating avatar URL:', error);
+        setIsLoading(false);
+      }
+    };
+
+    updateAvatarUrl();
+  }, [avatarOptions]);
+
   // 대시보드 데이터 로드
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -289,6 +311,7 @@ const Dashboard = () => {
 
       try {
         console.log('Starting to load dashboard data...');
+        setIsLoading(true);  // 데이터 로딩 시작할 때 로딩 상태 설정
         
         // 사용자 데이터 로드
         const userDocRef = doc(db, 'users', user.uid);
@@ -299,8 +322,10 @@ const Dashboard = () => {
           console.log('Firebase user data:', userData);
           
           // 아바타 옵션 로드
-          if (userData.avatar?.avatarOptions) {
-            setAvatarOptions(userData.avatar.avatarOptions);
+          if (userData.avatarOptions) {
+            setAvatarOptions(userData.avatarOptions);
+          } else {
+            setIsLoading(false);  // 아바타 옵션이 없는 경우 로딩 상태 해제
           }
           
           setUserRole(userData.role || '');
@@ -320,7 +345,6 @@ const Dashboard = () => {
           teamMembers
         });
 
-        setIsLoading(false);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         setIsLoading(false);
@@ -329,26 +353,6 @@ const Dashboard = () => {
 
     loadDashboardData();
   }, [user?.uid]);
-
-  // 아바타 URL 업데이트
-  useEffect(() => {
-    const updateAvatarUrl = async () => {
-      if (!avatarOptions) {
-        setAvatarUrl('');
-        return;
-      }
-
-      try {
-        const base64Options = btoa(JSON.stringify(avatarOptions));
-        const url = `https://notion-avatar.app/api/svg/${base64Options}`;
-        setAvatarUrl(url);
-      } catch (error) {
-        console.error('Error generating avatar URL:', error);
-      }
-    };
-
-    updateAvatarUrl();
-  }, [avatarOptions]);
 
   // 로딩 중일 때 표시할 컴포넌트
   const LoadingDashboard = () => (
